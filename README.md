@@ -91,7 +91,9 @@ This part develops a JPEG-style encoder and decoder **from scratch** for any 8-b
 
 The 2D DCT for each 8×8 block is implemented manually using the textbook basis function:
 
-b_x[x, y] = cos((2x + 1)uπ / 16) cos((2y + 1)vπ / 16)             x,y,u,v in {0, ......,7}
+\[
+b_x[x, y] = cos((2x + 1)uπ / 16) cos((2y + 1)vπ / 16) where  x,y,u,v in {0, ......,7}
+\]
 
 After computing the raw DCT coefficients, simple scaling is applied as specified in the project notes:
 
@@ -183,7 +185,7 @@ The JPEG decoder reverses all previous steps:
     - Multiply each coefficient by the corresponding quantization matrix element:
 
 \[
-\F[u,v] = C_q[u,v] . Q[u,v]
+F[u,v] = C_q[u,v] . Q[u,v]
 \]
 
 11. **Inverse DCT (IDCT)**  
@@ -373,5 +375,5 @@ All example images are stored under `Assets/`:
 Copyright (c) 2023 Contributors:
 
 - Muhammad Essam Khattab
-- Youssef Alaa
+- Youssef Alaa Abou-Almagd
 - Ahmed Samy
