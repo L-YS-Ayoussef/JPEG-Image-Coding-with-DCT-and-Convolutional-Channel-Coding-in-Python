@@ -41,7 +41,7 @@ This project implements a **JPEG-like image compression scheme** and a **convolu
   - Full decoder pipeline and visual comparison for each quantization table.
 
 - **Part 2 – Channel Coding over AWGN:**  
-  A **rate 1/3 convolutional encoder** (constraint length \(K = 3\)) and **hard-decision Viterbi decoder** are implemented, integrated with BPSK modulation over an **AWGN channel**. The JPEG bitstream from Part 1 is protected with this code to build a complete **source + channel coding communication system**.
+  A **rate 1/3 convolutional encoder** (constraint length K = 3) and **hard-decision Viterbi decoder** are implemented, integrated with BPSK modulation over an **AWGN channel**. The JPEG bitstream from Part 1 is protected with this code to build a complete **source + channel coding communication system**.
 
 All demonstrations and plots (BER vs SNR, reconstructed images) are generated in Python.
 
@@ -56,7 +56,7 @@ All demonstrations and plots (BER vs SNR, reconstructed images) are generated in
   - Huffman encoder/decoder,
   - Finite-precision arithmetic encoder/decoder.
 - ✅ Multiple quantization tables for **high** vs **low** compression.
-- ✅ Rate 1/3 convolutional encoder (\(K = 3\)) and hard-decision Viterbi decoder.
+- ✅ Rate 1/3 convolutional encoder (K = 3) and hard-decision Viterbi decoder.
 - ✅ End-to-end **BPSK + AWGN + channel decoding + JPEG decoding**.
 - ✅ BER vs SNR analysis **with and without coding**.
 - ✅ Visual comparison of:
@@ -79,7 +79,7 @@ This part develops a JPEG-style encoder and decoder **from scratch** for any 8-b
 #### Step 1 – 8×8 Block Partitioning
 
 1. Load the input image (originally colored, then converted to grayscale).
-2. Ensure the grayscale image values are in the range \([0, 255]\) (8-bit).
+2. Ensure the grayscale image values are in the range [0, 255] (8-bit).
 3. Optionally subtract 128 from each pixel to center values around 0.
 4. Divide the image into **non-overlapping 8×8 blocks**; pad the image if its size is not a multiple of 8.
 
@@ -91,10 +91,7 @@ This part develops a JPEG-style encoder and decoder **from scratch** for any 8-b
 
 The 2D DCT for each 8×8 block is implemented manually using the textbook basis function:
 
-\[
-b_x[x, y] = cos((2x + 1)uπ / 16) cos((2y + 1)vπ / 16)
-x,y,u,v in {0, ......,7}
-\]
+b_x[x, y] = cos((2x + 1)uπ / 16) cos((2y + 1)vπ / 16)             x,y,u,v in {0, ......,7}
 
 After computing the raw DCT coefficients, simple scaling is applied as specified in the project notes:
 
@@ -102,7 +99,7 @@ After computing the raw DCT coefficients, simple scaling is applied as specified
 - Divide coefficients with **either** \(u = 0\) or \(v = 0\) (but not both) by **32**.
 - Divide all remaining coefficients by **16**.
 
-For the IDCT, each DCT coefficient is multiplied by its corresponding basis function \(b[x,y]\) and all terms are summed, with **no extra scaling**, so that a DCT → IDCT round trip recovers the original 8×8 block (before quantization).
+For the IDCT, each DCT coefficient is multiplied by its corresponding basis function b[x,y] and all terms are summed, with **no extra scaling**, so that a DCT → IDCT round trip recovers the original 8×8 block (before quantization).
 
 ---
 
@@ -117,7 +114,7 @@ For each 8×8 DCT block:
 2. Each DCT coefficient is quantized as:
 
 \[
-Cq(k)​[u,v] = round(F[u,v] / Q(k)[u,v]​)
+Cq(k)​[u,v] = round( F[u,v] / Q(k)[u,v]​ )
 \]
 
 3. The encoder can be run separately for each table to compare rate–distortion performance.
@@ -126,7 +123,7 @@ Cq(k)​[u,v] = round(F[u,v] / Q(k)[u,v]​)
 
 #### Step 4 – Zig-Zag Scan (2D → 1D)
 
-Each \(8 \times 8\) quantized block is converted into a **1D vector of length 64** using the standard JPEG **zig-zag pattern** (diagonal scan from DC to higher frequencies).
+Each \(8 * 8\) quantized block is converted into a **1D vector of length 64** using the standard JPEG **zig-zag pattern** (diagonal scan from DC to higher frequencies).
 
 - This step groups low-frequency coefficients at the start and high-frequency coefficients at the end.
 - After heavy quantization, the tail of the vector often consists of many zeros.
@@ -158,7 +155,7 @@ Two entropy coding methods are implemented **from scratch**:
 
 2. **Finite-Precision Arithmetic Encoder**
    - The same symbol alphabet is used.
-   - An interval \([0,1)\) is recursively narrowed based on cumulative probabilities.
+   - An interval [0,1) is recursively narrowed based on cumulative probabilities.
    - All computations are implemented with **finite precision** (integer arithmetic and renormalization) to avoid floating-point issues.
 
 The project **compares**:
@@ -194,7 +191,7 @@ The JPEG decoder reverses all previous steps:
 
 12. **Reconstruct the Full Image**  
     - Assemble all 8×8 blocks into the full image frame.
-    - Clip values to \([0,255]\) and cast back to 8-bit integers.
+    - Clip values to [0,255] and cast back to 8-bit integers.
 
 13. **Quality Comparison**  
     - Compare the original grayscale image with:
@@ -223,7 +220,7 @@ In Part 2, a **rate 1/3 convolutional code** is designed and used to protect the
 #### Step 2 – Software Implementation of the Encoder
 
 - Implemented in pure Python (no built-in comms library).
-- Given an input bitstream \(u[n]\), the encoder updates the register and outputs three coded bits per symbol.
+- Given an input bitstream u[n], the encoder updates the register and outputs three coded bits per symbol.
 - The implementation supports:
   - Arbitrary block lengths,
   - Easy reset of the encoder state.
