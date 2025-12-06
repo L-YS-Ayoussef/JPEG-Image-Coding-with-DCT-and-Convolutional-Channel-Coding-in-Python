@@ -89,31 +89,20 @@ This part develops a JPEG-style encoder and decoder **from scratch** for any 8-b
 
 #### Step 2 – Custom 2D DCT
 
-The 2D DCT for each 8×8 block is implemented manually, without using built-in DCT libraries.
-
-For an \(8 \times 8\) block \(f[x, y]\), the DCT coefficient \(F[u, v]\) is computed using separable **1D basis functions**:
+The 2D DCT for each 8×8 block is implemented manually using the textbook basis function:
 
 \[
-b_x[x, u] = \cos\left(\frac{(2x + 1)u\pi}{16}\right), \quad
-b_y[y, v] = \cos\left(\frac{(2y + 1)v\pi}{16}\right)
+b_x[x, y] = cos((2x + 1)uπ / 16) cos((2y + 1)vπ / 16)
+x,y,u,v in {0, ......,7}
 \]
 
-\[
-F[u, v] = \alpha(u)\alpha(v)
-\sum_{x=0}^{7} \sum_{y=0}^{7}
-f[x, y]\;
-b_x[x,u]\; b_y[y,v]
-\]
+After computing the raw DCT coefficients, simple scaling is applied as specified in the project notes:
 
-where \(\alpha(u)\) and \(\alpha(v)\) are the usual DCT scaling factors.
+- Divide the coefficient at \((u = 0, v = 0)\) by **64** (DC term).
+- Divide coefficients with **either** \(u = 0\) or \(v = 0\) (but not both) by **32**.
+- Divide all remaining coefficients by **16**.
 
-Additional implementation notes (as in the project statement):
-
-- The DC coefficient at \((u=0, v=0)\) is scaled appropriately (e.g., divided by 64).
-- Coefficients with either \(u = 0\) or \(v = 0\) (excluding \((0,0)\)) are scaled differently.
-- Remaining coefficients are scaled by another factor (e.g., 16) to ensure that IDCT reconstructs the original pixels exactly for a test block.
-
-The **inverse DCT (IDCT)** is implemented with the same basis functions in reverse, guaranteeing that an 8×8 block passes a DCT→IDCT cycle without loss (before quantization).
+For the IDCT, each DCT coefficient is multiplied by its corresponding basis function \(b[x,y]\) and all terms are summed, with **no extra scaling**, so that a DCT → IDCT round trip recovers the original 8×8 block (before quantization).
 
 ---
 
@@ -121,14 +110,14 @@ The **inverse DCT (IDCT)** is implemented with the same basis functions in rever
 
 For each 8×8 DCT block:
 
-1. Two (or more) **quantization matrices** \(Q^{(1)}\) and \(Q^{(2)}\) are defined:
+1. Two (or more) **quantization matrices** \(Q_1\) and \(Q_2\) are defined:
    - One corresponding to **high compression** (larger values, more aggressive quantization),
    - One corresponding to **low compression** (smaller values, better quality).
 
 2. Each DCT coefficient is quantized as:
 
 \[
-C_q^{(k)}[u,v] = \text{round}\left(\frac{F[u,v]}{Q^{(k)}[u,v]}\right)
+Cq(k)​[u,v] = round(F[u,v] / Q(k)[u,v]​)
 \]
 
 3. The encoder can be run separately for each table to compare rate–distortion performance.
@@ -170,7 +159,7 @@ Two entropy coding methods are implemented **from scratch**:
 2. **Finite-Precision Arithmetic Encoder**
    - The same symbol alphabet is used.
    - An interval \([0,1)\) is recursively narrowed based on cumulative probabilities.
-   - All computations are implemented with **finite precision** (e.g., integer arithmetic and renormalization) to avoid floating-point issues.
+   - All computations are implemented with **finite precision** (integer arithmetic and renormalization) to avoid floating-point issues.
 
 The project **compares**:
 - Compression ratio,
@@ -197,7 +186,7 @@ The JPEG decoder reverses all previous steps:
     - Multiply each coefficient by the corresponding quantization matrix element:
 
 \[
-\hat{F}[u,v] = C_q[u,v] \cdot Q[u,v]
+\F[u,v] = C_q[u,v] . Q[u,v]
 \]
 
 11. **Inverse DCT (IDCT)**  
@@ -259,7 +248,7 @@ This approach simplifies Viterbi decoding and avoids path-memory ambiguity acros
 - Each coded bit is mapped to a BPSK symbol:
   - Bit 0 → \(+1\)
   - Bit 1 → \(-1\)
-- AWGN noise \(n \sim \mathcal{N}(0, \sigma^2)\) is added to each symbol, where \(\sigma^2\) is chosen based on the desired **SNR (in dB)**.
+- AWGN noise n ∼ N(0,σ2) is added to each symbol, where σ^2 is chosen based on the desired **SNR (in dB)**.
 - The received sample is:
 
 \[
@@ -276,8 +265,8 @@ A **hard-decision Viterbi decoder** is implemented from scratch:
 
 1. **Hard Decision:**  
    - The receiver quantizes each noisy BPSK symbol into a binary decision:
-     - \(y \geq 0 \Rightarrow \hat{b} = 0\),
-     - \(y < 0 \Rightarrow \hat{b} = 1\).
+     - \(y ≥ 0  →  b = 0\),
+     - \(y < 0  →  b = 1\),
 
 2. **Trellis Construction:**  
    - Trellis states correspond to the contents of the shift register (4 states for \(K=3\)).
@@ -309,7 +298,7 @@ For each SNR value:
 - Bit-error rate (BER) is computed as:
 
 \[
-\text{BER} = \frac{\text{number of bit errors}}{\text{total transmitted bits}}
+BER = number of bit errors / total transmitted bits
 \]
 
 - BER vs SNR curves are generated for:
@@ -354,7 +343,7 @@ All result figures are stored in the `Assets/` folder.
 - The **orange curve** corresponds to the **Source Encoded** system (JPEG only, no channel code).
 - As SNR increases (moving right), both BERs drop; however:
   - The channel-coded system achieves **much lower BER** at the same SNR.
-  - For a given target BER (e.g., \(10^{-3}\)), the channel-coded system requires **several dB less SNR**, illustrating the coding gain of the convolutional code.
+  - For a given target BER \(10^{-3}\), the channel-coded system requires **several dB less SNR**, illustrating the coding gain of the convolutional code.
 
 ---
 
@@ -384,4 +373,8 @@ All example images are stored under `Assets/`:
 
 ⚠️ **Important Notice:** This repository is publicly available for viewing only. Forking, cloning, or redistributing this project is **NOT** permitted without explicit permission.
 
-Copyright (c) 2025 Chameleon Tech
+Copyright (c) 2023 Contributors:
+
+- Muhammad Essam Khattab
+- Youssef Alaa
+- Ahmed Samy
